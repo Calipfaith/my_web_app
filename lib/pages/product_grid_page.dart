@@ -2,20 +2,68 @@ import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../widgets/product_image.dart';
 
-class ProductGridPage extends StatelessWidget {
+class ProductGridPage extends StatefulWidget {
+  const ProductGridPage({super.key});
+
+  @override
+  State<ProductGridPage> createState() => _ProductGridPageState();
+}
+
+class _ProductGridPageState extends State<ProductGridPage> {
+  String searchQuery = '';
+  String sortOrder = 'Recommended';
+
   @override
   Widget build(BuildContext context) {
     final arguments = ModalRoute.of(context)?.settings.arguments;
     final category = arguments is Map ? arguments['category'] as String? : null;
-    final visibleProducts = category == null
+    var visibleProducts = category == null
         ? products
         : products.where((product) => product.category == category).toList();
+    visibleProducts = visibleProducts
+        .where((product) => product.name.toLowerCase().contains(searchQuery))
+        .toList();
+    if (sortOrder == 'Price: Low to high') {
+      visibleProducts.sort((a, b) => a.price.compareTo(b.price));
+    } else if (sortOrder == 'Price: High to low') {
+      visibleProducts.sort((a, b) => b.price.compareTo(a.price));
+    }
 
     return Scaffold(
       appBar: AppBar(title: Text(category == null ? "Products" : category)),
-      body: visibleProducts.isEmpty
-          ? Center(child: Text("No products found"))
-          : GridView.builder(
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: TextField(
+              decoration: const InputDecoration(
+                labelText: 'Search products',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) => setState(() {
+                searchQuery = value.trim().toLowerCase();
+              }),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: DropdownButtonFormField<String>(
+              initialValue: sortOrder,
+              decoration: const InputDecoration(labelText: 'Sort by'),
+              items: const [
+                DropdownMenuItem(value: 'Recommended', child: Text('Recommended')),
+                DropdownMenuItem(value: 'Price: Low to high', child: Text('Price: Low to high')),
+                DropdownMenuItem(value: 'Price: High to low', child: Text('Price: High to low')),
+              ],
+              onChanged: (value) => setState(() => sortOrder = value!),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: visibleProducts.isEmpty
+                ? const Center(child: Text("No products found"))
+                : GridView.builder(
         padding: EdgeInsets.all(16),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
@@ -65,6 +113,9 @@ class ProductGridPage extends StatelessWidget {
             ),
           );
         },
+                ),
+          ),
+        ],
       ),
     );
   }
