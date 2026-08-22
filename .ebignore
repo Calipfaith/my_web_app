@@ -1,0 +1,12 @@
+.git/
+build/
+ios/
+macos/
+windows/
+android/
+*.iml
+*.log
+
+# Ignore build but keep web output
+build/
+!build/web
