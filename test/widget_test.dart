@@ -43,4 +43,19 @@ void main() {
     expect(find.text('Headphones'), findsOneWidget);
     expect(find.text('Smartphone'), findsNothing);
   });
+
+  testWidgets('shopper can reach add to cart from product detail',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Men'));
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(GridView), const Offset(0, -300));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(ElevatedButton).first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Add to Cart'), findsOneWidget);
+  });
 }

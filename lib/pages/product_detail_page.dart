@@ -13,9 +13,10 @@ class ProductDetailPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(product.name)),
-      body: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(16),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
@@ -59,6 +60,7 @@ class ProductDetailPage extends StatelessWidget {
               ),
             ),
           ],
+          ),
         ),
       ),
     );
