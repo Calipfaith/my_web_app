@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
+import '../services/catalog_service.dart';
 import '../widgets/product_image.dart';
 
 class ProductGridPage extends StatefulWidget {
@@ -10,29 +11,50 @@ class ProductGridPage extends StatefulWidget {
 }
 
 class _ProductGridPageState extends State<ProductGridPage> {
+  final catalogService = CatalogService();
+  late final Future<List<Product>> productsFuture;
   String searchQuery = '';
   String sortOrder = 'Recommended';
+
+  @override
+  void initState() {
+    super.initState();
+    productsFuture = catalogService.getProducts();
+  }
 
   @override
   Widget build(BuildContext context) {
     final arguments = ModalRoute.of(context)?.settings.arguments;
     final category = arguments is Map ? arguments['category'] as String? : null;
-    var visibleProducts = category == null
-        ? products
-        : products.where((product) => product.category == category).toList();
-    visibleProducts = visibleProducts
-        .where((product) => product.name.toLowerCase().contains(searchQuery))
-        .toList();
-    if (sortOrder == 'Price: Low to high') {
-      visibleProducts.sort((a, b) => a.price.compareTo(b.price));
-    } else if (sortOrder == 'Price: High to low') {
-      visibleProducts.sort((a, b) => b.price.compareTo(a.price));
-    }
-
     return Scaffold(
       appBar: AppBar(title: Text(category == null ? "Products" : category)),
-      body: Column(
-        children: [
+      body: FutureBuilder<List<Product>>(
+        future: productsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return const Center(child: Text('Unable to load products'));
+          }
+
+          var visibleProducts = category == null
+              ? snapshot.data ?? <Product>[]
+              : (snapshot.data ?? <Product>[])
+                  .where((product) => product.category == category)
+                  .toList();
+          visibleProducts = visibleProducts
+              .where((product) =>
+                  product.name.toLowerCase().contains(searchQuery))
+              .toList();
+          if (sortOrder == 'Price: Low to high') {
+            visibleProducts.sort((a, b) => a.price.compareTo(b.price));
+          } else if (sortOrder == 'Price: High to low') {
+            visibleProducts.sort((a, b) => b.price.compareTo(a.price));
+          }
+
+          return Column(
+            children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: TextField(
@@ -115,7 +137,9 @@ class _ProductGridPageState extends State<ProductGridPage> {
         },
                 ),
           ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
