@@ -4,14 +4,15 @@ import '../services/catalog_service.dart';
 import '../widgets/product_image.dart';
 
 class ProductGridPage extends StatefulWidget {
-  const ProductGridPage({super.key});
+  final CatalogService catalogService;
+
+  const ProductGridPage({super.key, required this.catalogService});
 
   @override
   State<ProductGridPage> createState() => _ProductGridPageState();
 }
 
 class _ProductGridPageState extends State<ProductGridPage> {
-  final catalogService = CatalogService();
   late final Future<List<Product>> productsFuture;
   String searchQuery = '';
   String sortOrder = 'Recommended';
@@ -19,7 +20,7 @@ class _ProductGridPageState extends State<ProductGridPage> {
   @override
   void initState() {
     super.initState();
-    productsFuture = catalogService.getProducts();
+    productsFuture = widget.catalogService.getProducts();
   }
 
   @override

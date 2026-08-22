@@ -10,6 +10,15 @@ class Product {
     required this.category,
     required this.image,
   });
+
+  factory Product.fromJson(Map<String, dynamic> json) {
+    return Product(
+      name: json['name'] as String,
+      price: (json['price'] as num).toDouble(),
+      category: json['category'] as String,
+      image: json['image'] as String,
+    );
+  }
 }
 
 const products = [

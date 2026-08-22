@@ -1,14 +1,8 @@
-# Use Nginx to serve Flutter web build
-FROM nginx:alpine
+FROM python:3.12-alpine
 
-# Remove default Nginx static files
-RUN rm -rf /usr/share/nginx/html/*
+WORKDIR /app
+COPY build/web /app/build/web
+COPY backend/server.py /app/backend/server.py
 
-# Copy Flutter build output into Nginx html directory
-COPY build/web /usr/share/nginx/html
-
-# Expose port 80
 EXPOSE 80
-
-# Start Nginx
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["python3", "/app/backend/server.py"]

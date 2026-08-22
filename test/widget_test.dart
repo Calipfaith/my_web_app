@@ -9,11 +9,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:my_web_app/main.dart';
+import 'package:my_web_app/models/product.dart';
+import 'package:my_web_app/services/catalog_service.dart';
+
+class _FakeCatalogService extends CatalogService {
+  @override
+  Future<List<Product>> getProducts() async => products;
+}
 
 void main() {
   testWidgets('shopper can open the product grid from home',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(MyApp(catalogService: _FakeCatalogService()));
     await tester.pumpAndSettle();
 
     expect(find.text('Welcome'), findsOneWidget);
@@ -30,7 +37,7 @@ void main() {
 
   testWidgets('shopper can search within a category',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(MyApp(catalogService: _FakeCatalogService()));
     await tester.pumpAndSettle();
 
     await tester.ensureVisible(find.text('Electronics'));
@@ -46,7 +53,7 @@ void main() {
 
   testWidgets('shopper can reach add to cart from product detail',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(MyApp(catalogService: _FakeCatalogService()));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Men'));

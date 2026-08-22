@@ -11,18 +11,22 @@ import 'pages/cart_page.dart';
 import 'pages/checkout_page.dart';
 import 'pages/payment_confirmation_page.dart';
 import 'pages/order_tracking_page.dart';
+import 'services/catalog_service.dart';
 
 void main() {
   runApp(
     ChangeNotifierProvider(
       create: (_) => CartProvider(),
-      child: const MyApp(),
+      child: MyApp(),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final CatalogService catalogService;
+
+  MyApp({super.key, CatalogService? catalogService})
+      : catalogService = catalogService ?? CatalogService();
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +37,8 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => PersonaPage(),
         '/home': (context) => HomePage(),
-        '/productGrid': (context) => ProductGridPage(), // consistent name
+        '/productGrid': (context) =>
+          ProductGridPage(catalogService: catalogService),
         '/productDetail': (context) => ProductDetailPage(),
         '/cart': (context) => CartPage(),
         '/checkout': (context) => CheckoutPage(),
