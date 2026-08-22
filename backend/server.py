@@ -5,6 +5,7 @@ import uuid
 from decimal import Decimal
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlencode
+from urllib.parse import unquote
 from urllib.request import Request, urlopen
 
 import boto3
@@ -56,6 +57,18 @@ class AppHandler(SimpleHTTPRequestHandler):
                 payload = b'{"error":"Catalog temporarily unavailable"}'
                 status = 503
             self._send_json(status, json.loads(payload))
+            return
+        if self.path.startswith("/api/orders/"):
+            order_id = unquote(self.path.removeprefix("/api/orders/"))
+            try:
+                order = get_order(order_id)
+                if order is None:
+                    self._send_json(404, {"error": "Order not found"})
+                else:
+                    self._send_json(200, order)
+            except Exception:
+                logger.exception("Order lookup failed")
+                self._send_json(503, {"error": "Order service temporarily unavailable"})
             return
         super().do_GET()
 
@@ -120,6 +133,22 @@ def create_order(order):
         }
     )
     return order_id
+
+
+def get_order(order_id):
+    table_name = os.environ.get("ORDERS_TABLE")
+    if not table_name:
+        return {"orderId": order_id, "status": "pending"}
+
+    region = os.environ.get("AWS_REGION") or os.environ.get(
+        "AWS_DEFAULT_REGION", "ap-southeast-1"
+    )
+    table = boto3.resource("dynamodb", region_name=region).Table(table_name)
+    response = table.get_item(Key={"orderId": order_id})
+    order = response.get("Item")
+    if order is None:
+        return None
+    return {"orderId": order["orderId"], "status": order.get("status", "pending")}
 
 
 def create_payment_intent(payment):
