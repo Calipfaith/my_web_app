@@ -55,5 +55,5 @@ app.*.map.json
 # Personal planning notes
 docs/planning/
 
-
+# VS Code settings folder
 .vscode/

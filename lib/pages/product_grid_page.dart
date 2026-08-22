@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
+import '../models/product.dart';
+import '../widgets/product_image.dart';
 
 class ProductGridPage extends StatelessWidget {
-  final products = [
-    {"name": "Sneakers", "price": 120, "image": "assets/sneakers.png"},
-    {"name": "Smartphone", "price": 999, "image": "assets/phone.png"},
-    {"name": "Handbag", "price": 250, "image": "assets/handbag.png"},
-    {"name": "Headphones", "price": 180, "image": "assets/headphones.png"},
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final arguments = ModalRoute.of(context)?.settings.arguments;
+    final category = arguments is Map ? arguments['category'] as String? : null;
+    final visibleProducts = category == null
+        ? products
+        : products.where((product) => product.category == category).toList();
+
     return Scaffold(
-      appBar: AppBar(title: Text("Products")),
-      body: GridView.builder(
+      appBar: AppBar(title: Text(category == null ? "Products" : category)),
+      body: visibleProducts.isEmpty
+          ? Center(child: Text("No products found"))
+          : GridView.builder(
         padding: EdgeInsets.all(16),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
@@ -20,9 +23,9 @@ class ProductGridPage extends StatelessWidget {
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
         ),
-        itemCount: products.length,
+        itemCount: visibleProducts.length,
         itemBuilder: (context, index) {
-          final product = products[index];
+          final product = visibleProducts[index];
           return GestureDetector(
             onTap: () => Navigator.pushNamed(
               context,
@@ -38,17 +41,14 @@ class ProductGridPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Expanded(
-                    child: Image.asset(
-                      product["image"] as String,   // ✅ cast to String
-                      fit: BoxFit.cover,
-                    ),
+                    child: ProductImage(name: product.name),
                   ),
                   SizedBox(height: 8),
                   Text(
-                    product["name"] as String,     // ✅ cast to String
+                    product.name,
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  Text("RM${product["price"]}"),
+                  Text("RM${product.price.toStringAsFixed(0)}"),
                   SizedBox(height: 8),
                   ElevatedButton(
                     onPressed: () {

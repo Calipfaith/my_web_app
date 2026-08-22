@@ -1,0 +1,15 @@
+{
+  "folders": [
+    {
+      "name": "lib",
+      "path": "lib"
+    },
+    {
+      "name": "planning",
+      "path": "docs/planning"
+    }
+  ],
+  "settings": {
+    "workbench.startupEditor": "none"
+  }
+}

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/cart_provider.dart';
-import '../models/cart.dart';
+import '../widgets/product_image.dart';
 
 class CartPage extends StatelessWidget {
   @override
@@ -19,7 +19,7 @@ class CartPage extends StatelessWidget {
                 return Card(
                   margin: EdgeInsets.all(8),
                   child: ListTile(
-                    leading: Image.asset(item.image, height: 50),
+                    leading: ProductImage(name: item.name, height: 50),
                     title: Text(item.name),
                     subtitle: Text("RM${item.price}"),
                     trailing: Row(

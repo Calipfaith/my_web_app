@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../models/product.dart';
+import '../widgets/product_image.dart';
 
 class HomePage extends StatelessWidget {
   final categories = [
@@ -44,8 +46,6 @@ class HomePage extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final category = categories[index];
                   final name = category["name"] as String;
-                  final image = category["image"] as String;
-
                   return GestureDetector(
                     onTap: () {
                       Navigator.pushNamed(
@@ -65,10 +65,7 @@ class HomePage extends StatelessWidget {
                           Expanded(
                             child: Padding(
                               padding: EdgeInsets.all(8),
-                              child: Image.asset(
-                                image,
-                                fit: BoxFit.contain,
-                              ),
+                                  child: ProductImage(name: name),
                             ),
                           ),
                           SizedBox(height: 6),
@@ -98,9 +95,8 @@ class HomePage extends StatelessWidget {
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   children: [
-                    _recommendedCard(context, "Sneakers", "assets/sneakers.png", 120),
-                    _recommendedCard(context, "Handbag", "assets/handbag.png", 250),
-                    _recommendedCard(context, "Headphones", "assets/headphones.png", 180),
+                        for (final product in products.take(3))
+                          _recommendedCard(context, product),
                   ],
                 ),
               ),
@@ -111,7 +107,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _recommendedCard(BuildContext context, String name, String image, double price) {
+  Widget _recommendedCard(BuildContext context, Product product) {
     return Padding(
       padding: EdgeInsets.only(right: 12),
       child: GestureDetector(
@@ -119,7 +115,7 @@ class HomePage extends StatelessWidget {
           Navigator.pushNamed(
             context,
             '/productDetail',
-            arguments: {"name": name, "price": price, "image": image},
+            arguments: product,
           );
         },
         child: Card(
@@ -131,15 +127,15 @@ class HomePage extends StatelessWidget {
             child: Column(
               children: [
                 Expanded(
-                  child: Image.asset(image, fit: BoxFit.contain),
+                  child: ProductImage(name: product.name),
                 ),
                 SizedBox(height: 6),
                 Text(
-                  name,
+                  product.name,
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                 ),
                 SizedBox(height: 4),
-                Text("RM${price.toStringAsFixed(0)}"),
+                Text("RM${product.price.toStringAsFixed(0)}"),
               ],
             ),
           ),
