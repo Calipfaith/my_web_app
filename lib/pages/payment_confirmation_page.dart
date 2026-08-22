@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class PaymentConfirmationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final orderId = DateTime.now().millisecondsSinceEpoch.toString();
+    final orderId = ModalRoute.of(context)!.settings.arguments as String;
 
     return Scaffold(
       appBar: AppBar(title: Text("Payment Confirmation")),
