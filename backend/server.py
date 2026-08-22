@@ -4,6 +4,8 @@ import os
 import uuid
 from decimal import Decimal
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
 
 import boto3
 
@@ -20,15 +22,19 @@ PRODUCTS = [
 
 class AppHandler(SimpleHTTPRequestHandler):
     def do_POST(self):
-        if self.path != "/api/orders":
+        if self.path not in ("/api/orders", "/api/payment-intents"):
             self.send_error(404)
             return
 
         try:
             length = int(self.headers.get("Content-Length", "0"))
             order = json.loads(self.rfile.read(length))
-            order_id = create_order(order)
-            self._send_json(201, {"orderId": order_id, "status": "pending"})
+            if self.path == "/api/orders":
+                order_id = create_order(order)
+                self._send_json(201, {"orderId": order_id, "status": "pending"})
+            else:
+                payment = create_payment_intent(order)
+                self._send_json(201, payment)
         except (ValueError, json.JSONDecodeError):
             self._send_json(400, {"error": "Invalid order payload"})
         except Exception:
@@ -114,6 +120,37 @@ def create_order(order):
         }
     )
     return order_id
+
+
+def create_payment_intent(payment):
+    secret_key = os.environ.get("STRIPE_SECRET_KEY")
+    if not secret_key:
+        raise RuntimeError("Stripe is not configured")
+    if not payment.get("orderId") or not payment.get("amount"):
+        raise ValueError("Missing payment field")
+
+    amount = int(payment["amount"])
+    if amount <= 0:
+        raise ValueError("Payment amount must be positive")
+
+    request = Request(
+        "https://api.stripe.com/v1/payment_intents",
+        data=urlencode({
+            "amount": amount,
+            "currency": payment.get("currency", "myr"),
+            "metadata[orderId]": payment["orderId"],
+            "payment_method_types[]": "card",
+        }).encode("utf-8"),
+        headers={"Authorization": f"Bearer {secret_key}"},
+        method="POST",
+    )
+    with urlopen(request, timeout=15) as response:
+        stripe_payment = json.load(response)
+    return {
+        "paymentIntentId": stripe_payment["id"],
+        "clientSecret": stripe_payment["client_secret"],
+        "status": stripe_payment["status"],
+    }
 
 
 if __name__ == "__main__":
