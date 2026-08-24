@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../services/catalog_service.dart';
-import '../widgets/product_image.dart';
+import '../widgets/app_scaffold.dart';
+import '../widgets/product_card.dart';
 
 class ProductGridPage extends StatefulWidget {
   final CatalogService catalogService;
@@ -27,8 +28,7 @@ class _ProductGridPageState extends State<ProductGridPage> {
   Widget build(BuildContext context) {
     final arguments = ModalRoute.of(context)?.settings.arguments;
     final category = arguments is Map ? arguments['category'] as String? : null;
-    return Scaffold(
-      appBar: AppBar(title: Text(category == null ? "Products" : category)),
+    return AppScaffold(
       body: FutureBuilder<List<Product>>(
         future: productsFuture,
         builder: (context, snapshot) {
@@ -56,88 +56,41 @@ class _ProductGridPageState extends State<ProductGridPage> {
 
           return Column(
             children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: TextField(
-              decoration: const InputDecoration(
-                labelText: 'Search products',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+                child: Text(category == null ? 'All products' : category, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900)),
               ),
-              onChanged: (value) => setState(() {
-                searchQuery = value.trim().toLowerCase();
-              }),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: DropdownButtonFormField<String>(
-              initialValue: sortOrder,
-              decoration: const InputDecoration(labelText: 'Sort by'),
-              items: const [
-                DropdownMenuItem(value: 'Recommended', child: Text('Recommended')),
-                DropdownMenuItem(value: 'Price: Low to high', child: Text('Price: Low to high')),
-                DropdownMenuItem(value: 'Price: High to low', child: Text('Price: High to low')),
-              ],
-              onChanged: (value) => setState(() => sortOrder = value!),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: visibleProducts.isEmpty
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: TextField(
+                  decoration: const InputDecoration(labelText: 'Search products', prefixIcon: Icon(Icons.search), border: OutlineInputBorder()),
+                  onChanged: (value) => setState(() => searchQuery = value.trim().toLowerCase()),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
+                child: DropdownButtonFormField<String>(
+                  initialValue: sortOrder,
+                  decoration: const InputDecoration(labelText: 'Sort by'),
+                  items: const [
+                    DropdownMenuItem(value: 'Recommended', child: Text('Recommended')),
+                    DropdownMenuItem(value: 'Price: Low to high', child: Text('Price: Low to high')),
+                    DropdownMenuItem(value: 'Price: High to low', child: Text('Price: High to low')),
+                  ],
+                  onChanged: (value) => setState(() => sortOrder = value!),
+                ),
+              ),
+              const SizedBox(height: 8),
+              visibleProducts.isEmpty
                 ? const Center(child: Text("No products found"))
                 : GridView.builder(
-        padding: EdgeInsets.all(16),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.75,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-        ),
-        itemCount: visibleProducts.length,
-        itemBuilder: (context, index) {
-          final product = visibleProducts[index];
-          return GestureDetector(
-            onTap: () => Navigator.pushNamed(
-              context,
-              '/productDetail',
-              arguments: product,
-            ),
-            child: Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: ProductImage(name: product.name),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    product.name,
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  Text("RM${product.price.toStringAsFixed(0)}"),
-                  SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushNamed(
-                        context,
-                        '/productDetail',
-                        arguments: product,
-                      );
-                    },
-                    child: Text("View"),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(24),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: MediaQuery.of(context).size.width > 900 ? 4 : MediaQuery.of(context).size.width >= 500 ? 2 : 1, childAspectRatio: .78, crossAxisSpacing: 16, mainAxisSpacing: 16),
+                    itemCount: visibleProducts.length,
+                    itemBuilder: (context, index) => ProductCard(product: visibleProducts[index], index: index, onTap: () => Navigator.pushNamed(context, '/productDetail', arguments: visibleProducts[index])),
                 ),
-          ),
             ],
           );
         },

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'auth_service.dart';
 
 class TrackingService {
   final http.Client client;
@@ -18,7 +19,7 @@ class TrackingService {
     final endpoint = baseUrl.isEmpty
         ? '/api/orders/$encodedId'
         : '$baseUrl/api/orders/$encodedId';
-    final response = await client.get(Uri.parse(endpoint));
+    final response = await client.get(Uri.parse(endpoint), headers: AuthService.authHeaders());
     if (response.statusCode != 200) {
       throw Exception('Order lookup failed: ${response.statusCode}');
     }

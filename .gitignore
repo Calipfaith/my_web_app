@@ -33,6 +33,25 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Generated Flutter web deployment output
+/web/.last_build_id
+/web/assets/
+/web/canvaskit/
+/web/flutter.js
+/web/flutter_bootstrap.js
+/web/flutter_service_worker.js
+/web/main.dart.js
+/web/version.json
+
+# Local JavaScript tooling
+/node_modules/
+/package-lock.json
+/package.json
+/server.js
+
+# Temporary deployment asset backup
+/original-web-icons/
+
 # Symbolication related
 app.*.symbols
 

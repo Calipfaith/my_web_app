@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
-import 'package:my_web_app/services/tracking_service.dart';
+import 'package:frenzybees/services/tracking_service.dart';
 
 void main() {
   test('loads a persisted order status', () async {

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../providers/cart_provider.dart';
 import '../services/order_service.dart';
+import '../services/payment_service.dart';
+import '../widgets/app_button.dart';
+import '../widgets/app_scaffold.dart';
 
 class CheckoutPage extends StatefulWidget {
   final List<Map<String, dynamic>>? cartItems;
@@ -21,14 +25,18 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("Checkout")),
+    return AppScaffold(
       body: Padding(
         padding: EdgeInsets.all(16),
         child: Form(
           key: _formKey,
-          child: ListView(
+          child: Column(
             children: [
+              const Text(
+                'Fly to checkout',
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 16),
               TextFormField(
                 decoration: InputDecoration(labelText: "Shipping Address"),
                 validator: (value) =>
@@ -45,42 +53,77 @@ class _CheckoutPageState extends State<CheckoutPage> {
               DropdownButtonFormField<String>(
                 initialValue: paymentMethod,
                 items: ["Credit Card", "PayPal", "Bank Transfer"]
-                    .map((method) => DropdownMenuItem(
-                          value: method,
-                          child: Text(method),
-                        ))
+                    .map(
+                      (method) =>
+                          DropdownMenuItem(value: method, child: Text(method)),
+                    )
                     .toList(),
                 onChanged: (value) => setState(() => paymentMethod = value!),
                 decoration: InputDecoration(labelText: "Payment Method"),
               ),
               SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: submitting ? null : () async {
-                  if (_formKey.currentState!.validate()) {
-                    _formKey.currentState!.save();
-                    setState(() => submitting = true);
-                    try {
-                      final cart = context.read<CartProvider>();
-                      final orderId = await OrderService().createOrder(
-                        address: address,
-                        contact: contact,
-                        paymentMethod: paymentMethod,
-                        cartItems: cart.items.map((item) => item.toMap()).toList(),
-                      );
-                      if (!mounted) return;
-                      Navigator.pushNamed(context, '/confirmation', arguments: orderId);
-                    } catch (_) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Unable to place order')),
-                        );
-                      }
-                    } finally {
-                      if (mounted) setState(() => submitting = false);
-                    }
-                  }
-                },
-                child: Text(submitting ? "Placing Order..." : "Place Order"),
+              AppButton(
+                label: submitting ? 'Placing order...' : 'Place order',
+                onPressed: submitting
+                    ? null
+                    : () async {
+                        if (_formKey.currentState!.validate()) {
+                          _formKey.currentState!.save();
+                          setState(() => submitting = true);
+                          try {
+                            final cart = context.read<CartProvider>();
+                            final liveContext = ModalRoute.of(context)
+                                ?.settings
+                                .arguments;
+                            final liveData = liveContext is Map
+                                ? Map<String, dynamic>.from(liveContext)
+                                : <String, dynamic>{};
+                            final orderId = await OrderService().createOrder(
+                              address: address,
+                              contact: contact,
+                              paymentMethod: paymentMethod,
+                              cartItems: cart.items
+                                  .map((item) => item.toMap())
+                                  .toList(),
+                              sessionId: liveData['sessionId'] as String?,
+                              hostId: liveData['hostId'] as String?,
+                            );
+                            final checkoutUrl = await PaymentService()
+                                .createCheckoutSession(
+                                  orderId: orderId,
+                                  cartItems: cart.items
+                                      .map((item) => item.toMap())
+                                      .toList(),
+                                );
+                            if (!await launchUrl(
+                              checkoutUrl,
+                              webOnlyWindowName: '_self',
+                            )) {
+                              throw Exception(
+                                'Unable to open payment checkout',
+                              );
+                            }
+                            if (!mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Opening secure payment checkout',
+                                ),
+                              ),
+                            );
+                          } catch (_) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Unable to place order'),
+                                ),
+                              );
+                            }
+                          } finally {
+                            if (mounted) setState(() => submitting = false);
+                          }
+                        }
+                      },
               ),
             ],
           ),

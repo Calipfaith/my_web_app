@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/tracking_service.dart';
+import '../widgets/app_scaffold.dart';
 
 class OrderTrackingPage extends StatefulWidget {
   const OrderTrackingPage({super.key});
@@ -22,14 +23,13 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
   Widget build(BuildContext context) {
     final orderId = ModalRoute.of(context)!.settings.arguments as String?;
 
-    return Scaffold(
-      appBar: AppBar(title: Text("Track Order")),
+    return AppScaffold(
       body: Padding(
         padding: EdgeInsets.all(16),
         child: Column(
           children: [
             Text(
-              "Order ID: ${orderId ?? "N/A"}",
+              "Bee on the way!\nOrder ID: ${orderId ?? "N/A"}",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 24),

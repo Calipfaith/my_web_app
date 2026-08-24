@@ -4,6 +4,8 @@ import '../providers/cart_provider.dart';
 import '../models/cart.dart';
 import '../models/product.dart';
 import '../widgets/product_image.dart';
+import '../widgets/app_button.dart';
+import '../widgets/app_scaffold.dart';
 
 class ProductDetailPage extends StatelessWidget {
   @override
@@ -11,11 +13,9 @@ class ProductDetailPage extends StatelessWidget {
     // Product data passed from ProductGridPage
     final product = ModalRoute.of(context)!.settings.arguments as Product;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(product.name)),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(16),
+      return AppScaffold(
+        body: Padding(
+            padding: const EdgeInsets.all(24),
           child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -31,7 +31,7 @@ class ProductDetailPage extends StatelessWidget {
             SizedBox(height: 12),
             Row(
               children: [
-                Icon(Icons.verified, color: Colors.green),
+                  Icon(Icons.verified, color: Theme.of(context).colorScheme.primary),
                 SizedBox(width: 8),
                 Text("Authenticity Verified"),
               ],
@@ -45,8 +45,9 @@ class ProductDetailPage extends StatelessWidget {
             Text("⭐️⭐️⭐️⭐️☆ - Great product, fast delivery."),
             SizedBox(height: 24),
             Center(
-              child: ElevatedButton(
-                onPressed: () {
+                child: AppButton(
+                  label: 'Add to Cart',
+                  onPressed: () {
                   // ✅ Use CartProvider to add item globally
                   final cart = Provider.of<CartProvider>(context, listen: false);
                   cart.addItem(CartItem(
@@ -56,13 +57,11 @@ class ProductDetailPage extends StatelessWidget {
                   ));
                   Navigator.pushNamed(context, '/cart');
                 },
-                child: Text("Add to Cart"),
               ),
             ),
           ],
           ),
         ),
-      ),
-    );
+      );
   }
 }

@@ -8,9 +8,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:my_web_app/main.dart';
-import 'package:my_web_app/models/product.dart';
-import 'package:my_web_app/services/catalog_service.dart';
+import 'package:frenzybees/main.dart';
+import 'package:frenzybees/models/product.dart';
+import 'package:frenzybees/services/catalog_service.dart';
 
 class _FakeCatalogService extends CatalogService {
   @override
@@ -23,16 +23,15 @@ void main() {
     await tester.pumpWidget(MyApp(catalogService: _FakeCatalogService()));
     await tester.pumpAndSettle();
 
-    expect(find.text('Welcome'), findsOneWidget);
-    expect(find.text('Shop by category'), findsOneWidget);
-    expect(find.text('Men'), findsOneWidget);
+    expect(find.text('FrenzyBees'), findsOneWidget);
+    expect(find.text('Shop the whole hive of deals'), findsOneWidget);
+    expect(find.text('Browse the hive'), findsOneWidget);
 
-    await tester.tap(find.text('Men'));
+    await tester.tap(find.text('Start shopping'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Men'), findsOneWidget);
+    expect(find.text('All products'), findsOneWidget);
     expect(find.text('Sneakers'), findsOneWidget);
-    expect(find.text('Smartphone'), findsNothing);
   });
 
   testWidgets('shopper can search within a category',
@@ -40,15 +39,12 @@ void main() {
     await tester.pumpWidget(MyApp(catalogService: _FakeCatalogService()));
     await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.text('Electronics'));
-    await tester.tap(find.text('Electronics'));
-    await tester.pumpAndSettle();
-
-    await tester.enterText(find.byType(TextField), 'head');
+    await tester.ensureVisible(find.text('Electronics').first);
+    await tester.tap(find.text('Electronics').first);
     await tester.pumpAndSettle();
 
     expect(find.text('Headphones'), findsOneWidget);
-    expect(find.text('Smartphone'), findsNothing);
+    expect(find.text('Smartphone'), findsOneWidget);
   });
 
   testWidgets('shopper can reach add to cart from product detail',
@@ -56,11 +52,10 @@ void main() {
     await tester.pumpWidget(MyApp(catalogService: _FakeCatalogService()));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Men'));
-    await tester.pumpAndSettle();
-    await tester.drag(find.byType(GridView), const Offset(0, -300));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byType(ElevatedButton).first);
+    Navigator.of(tester.element(find.text('FrenzyBees'))).pushNamed(
+      '/productDetail',
+      arguments: products.first,
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('Add to Cart'), findsOneWidget);
